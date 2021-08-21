@@ -5,7 +5,7 @@ Generates a stream of tweets from given hashtags. Bad words filter and block use
 - Download source.
 - Add appsettings.json with
 
-[code]
+```
 {
   "Settings": {
     "APIKey": "",
@@ -37,8 +37,4 @@ Generates a stream of tweets from given hashtags. Bad words filter and block use
     }
   }
 }
-
-
-
-
-[/code]
+```
