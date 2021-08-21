@@ -217,6 +217,7 @@ namespace TwitterStreamWorker
                         string fulltext = tweet.FullText;
                         int hashtagCount = tweet.Hashtags.Count;
                         int mediaCount = tweet.Media.Count;
+                        int mentionsCount = tweet.InReplyToScreenName.Length;
 
                         var random = new Random();
                         var timerRandom = random.Next(_options.TimerRandomMin, _options.TimerRandomMax);
@@ -230,6 +231,11 @@ namespace TwitterStreamWorker
                         if (tweet.IsRetweet == true)
                         {
                             _logger.LogInformation($">_ Skipped because retweet...");
+                            return;
+                        }
+                        if(mentionsCount > 1)
+                        {
+                            // Return if too many mentions
                             return;
                         }
                         if (hashtagCount > 3)
