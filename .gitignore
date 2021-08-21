@@ -1,0 +1,18 @@
+# TwitterStreamWorker git ignore list
+
+# Appsettings
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+
+# Logs
+log.*
+
+# Publish
+publish/
+
+# Folders
+bin/
+obj/
+Properties/
+.vs/
