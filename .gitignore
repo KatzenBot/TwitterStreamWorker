@@ -16,3 +16,6 @@ bin/
 obj/
 Properties/
 .vs/
+
+# Project files
+TwitterStreamWorker.csproj.user
