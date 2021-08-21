@@ -217,7 +217,11 @@ namespace TwitterStreamWorker
                         string fulltext = tweet.FullText;
                         int hashtagCount = tweet.Hashtags.Count;
                         int mediaCount = tweet.Media.Count;
-                        int mentionsCount = tweet.InReplyToScreenName.Length;
+                        int mentionsCount = 0;
+                        if (tweet.InReplyToScreenName != null)
+                        {
+                            mentionsCount = tweet.InReplyToScreenName.Length;
+                        }
 
                         var random = new Random();
                         var timerRandom = random.Next(_options.TimerRandomMin, _options.TimerRandomMax);
