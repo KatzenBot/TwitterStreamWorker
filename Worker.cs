@@ -229,29 +229,32 @@ namespace TwitterStreamWorker
                         // Timerhack
                         if(timerRandom > _options.TimerThreshold)
                         {
+                            // Return because of posting threshold
                             _logger.LogInformation($">_ Skipped because timer threshold hit..." + timerRandom);
                             return;
                         }
                         if (tweet.IsRetweet == true)
                         {
+                            // Return if retweet
                             _logger.LogInformation($">_ Skipped because retweet...");
                             return;
                         }
                         if(mentionsCount > 1)
                         {
                             // Return if too many mentions
+                            _logger.LogInformation($">_ Skipped because too many mentions...");
                             return;
                         }
                         if (hashtagCount > 3)
                         {
                             // Check for HashtagCount Limit
                             // Banned for hashtags
-                            _logger.LogInformation($">_ HashTagCount Limit...");
+                            _logger.LogInformation($">_ Too many hashtags...");
                             return;
                         }
                         if (mediaCount < 1)
                         {
-                            // Only tweet if Media attached
+                            // Only tweet if media attached
                             // No Media attached
                             _logger.LogInformation($">_ No Media attached...");
                             return;
