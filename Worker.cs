@@ -298,22 +298,9 @@ namespace TwitterStreamWorker
 
                             try
                             {
-                                // Checking rate limits
-                                var updateLimit = await _appClient.RateLimits.GetRateLimitsAsync();
-                                var remainingRetweets = updateLimit.StatusesRetweetsIdLimit.Remaining;
-                                _logger.LogInformation($">_ Remaing tweets:" + remainingRetweets.ToString());
-
-                                if (remainingRetweets == 0)
-                                {
-                                    _logger.LogInformation($">_ Retweet not possible not enough remaining actions...");
-                                    return;
-                                }
-                                else
-                                {
-                                    // Publish retweet and favorite Tweet
-                                    _logger.LogInformation($">_ Publish retweet...");
-                                    await _appClient.Tweets.PublishRetweetAsync(tweet);
-                                }
+                                // Publish retweet and favorite Tweet
+                                _logger.LogInformation($">_ Publish retweet...");
+                                await _appClient.Tweets.PublishRetweetAsync(tweet);
                             }
                             catch (TwitterException ex)
                             {
