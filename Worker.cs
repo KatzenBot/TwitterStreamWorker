@@ -298,7 +298,7 @@ namespace TwitterStreamWorker
 
                             try
                             {
-                                // Publish retweet and favorite Tweet
+                                // Publish retweet
                                 _logger.LogInformation($">_ Publish retweet...");
                                 await _appClient.Tweets.PublishRetweetAsync(tweet);
                             }
