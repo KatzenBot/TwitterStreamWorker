@@ -65,7 +65,7 @@ namespace TwitterStreamWorker
                 var appClient = new TwitterClient(_options.APIKey, _options.APISecret, _options.AccessToken, _options.AccessSecret);
                 var authenticatedUser = await appClient.Users.GetAuthenticatedUserAsync();
 
-                _logger.LogInformation($">_ LoggedIn as " + authenticatedUser.ScreenName + DateTime.Now);
+                _logger.LogInformation($">_ LoggedIn as " + authenticatedUser.ScreenName + " " + DateTime.Now);
 
                 _appClient = appClient;
 
