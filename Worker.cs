@@ -91,8 +91,7 @@ namespace TwitterStreamWorker
                 // Before executing request
                 TweetinviEvents.BeforeExecutingRequest += (sender, args) =>
                 {
-                    // lets delay all operations from this client by 1 second
-                    Task.Delay(TimeSpan.FromSeconds(1));
+                    // before executing
                 };
 
                 // Waiting for rate limits
@@ -186,8 +185,8 @@ namespace TwitterStreamWorker
 
                 foreach (var track in tracks)
                 {
-                    _logger.LogInformation($"" + track);
-
+                    // Add each track to the stream
+                    //_logger.LogInformation($"" + track);
                     stream.AddTrack(track);
                 }
 
@@ -202,11 +201,6 @@ namespace TwitterStreamWorker
                 var badWords = _options.BadWords.ToList();
                 _logger.LogInformation($">_ Loading blocked users from settings...");
                 var blockedUsers = _options.BlockedUsers.ToList();
-
-                foreach (var word in badWords)
-                {
-                    _logger.LogInformation($"" + word);
-                }
 
                 // Hit when matching tweet is received
                 stream.MatchingTweetReceived += async (sender, args) =>
