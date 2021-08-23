@@ -220,20 +220,19 @@ namespace TwitterStreamWorker
                         var random = new Random();
                         var timerRandom = random.Next(_options.TimerRandomMin, _options.TimerRandomMax);
 
-                        // Timerhack
-                        if(timerRandom > _options.TimerThreshold)
-                        {
-                            // Return because of posting threshold
-                            _logger.LogInformation($">_ Skipped because timer threshold hit..." + timerRandom);
-                            return;
-                        }
                         if (tweet.IsRetweet == true)
                         {
                             // Return if retweet
                             _logger.LogInformation($">_ Skipped because retweet...");
                             return;
                         }
-                        if(mentionsCount > 1)
+                        if (timerRandom > _options.TimerThreshold)
+                        {
+                            // Return because of posting threshold
+                            _logger.LogInformation($">_ Skipped because timer threshold hit..." + timerRandom);
+                            return;
+                        }
+                        if (mentionsCount > 1)
                         {
                             // Return if too many mentions
                             _logger.LogInformation($">_ Skipped because too many mentions...");
