@@ -202,12 +202,21 @@ namespace TwitterStreamWorker
                         string fulltext = tweet.FullText;
                         int hashtagCount = tweet.Hashtags.Count;
                         int mediaCount = tweet.Media.Count;
+                        
+                        // Check for too many mentions
                         int mentionsCount = 0;
                         if (tweet.Entities.UserMentions.Count > 0)
                         {
                             //_logger.LogInformation($">_ Tweet has mentions...");
                             mentionsCount = tweet.Entities.UserMentions.Count;
                             //_logger.LogInformation($">_ Mentions: " + mentionsCount);
+                        }
+
+                        // Check if tweet has URL included
+                        if (tweet.Entities.Urls.Count > 0)
+                        {
+                            _logger.LogInformation($">_ Skipped because url in tweet...");
+                            return;
                         }
 
                         var random = new Random();
@@ -286,7 +295,7 @@ namespace TwitterStreamWorker
                             try
                             {
                                 // Publish retweet
-                                _logger.LogInformation($">_ Publish retweet...");
+                                //_logger.LogInformation($">_ Publish retweet...");
                                 await _appClient.Tweets.PublishRetweetAsync(tweet);
                             }
                             catch (TwitterException ex)
