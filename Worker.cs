@@ -188,9 +188,9 @@ namespace TwitterStreamWorker
                 // Mainstream
                 //
 
-                _logger.LogInformation($">_ Loading BadWords from settings...");
+                _logger.LogInformation($">_ Loading bad Words from appsettings...");
                 var badWords = _options.BadWords.ToList();
-                _logger.LogInformation($">_ Loading blocked users from settings...");
+                _logger.LogInformation($">_ Loading blocked users from appsettings...");
                 var blockedUsers = _options.BlockedUsers.ToList();
 
                 // Hit when matching tweet is received
@@ -271,21 +271,16 @@ namespace TwitterStreamWorker
                             }
                             // Show Tweet debug details
                             _logger.LogInformation(
-                                "\n"
+                                  "\n "
                                 + "\n TweetId: " + tweet.Id
-                                +"\n Date: " + tweet.CreatedAt
+                                + "\n Date: " + tweet.CreatedAt
                                 + "\n Author: " + tweet.CreatedBy
-                                + "\n AuthorId: " + tweet.CreatedBy.Id
-                                + "\n"
-                                + "\n Fulltext: "
-                                + "\n"
-                                + "\n"
-                                + tweet.FullText
-                                + "\n"
-                                + "\n"
+                                + "\n AuthorId: " + tweet.CreatedBy.Id + "\n"
+                                + "\n " + tweet.FullText + "\n"
                                 + "\n HashtagCount: " + tweet.Hashtags.Count
                                 + "\n MediaCount: " + tweet.Media.Count
                                 + "\n MentionsCount: " + mentionsCount
+                                + "\n "
                                 );
 
                             try
