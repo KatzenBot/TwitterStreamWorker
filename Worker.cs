@@ -45,30 +45,22 @@ namespace TwitterStreamWorker
             public int TimerRandomMin { get; set; }
             public int TimerThreshold { get; set; }
         }
-
         public async Task AuthTwitter(CancellationToken stoppingToken)
         {
             try
             {
                 _logger.LogInformation($">_ AuthTwitter started... " + DateTime.Now);
-                _logger.LogInformation($">_ Gettings Settings from Database... " + DateTime.Now);
-
-                // Get Settings from appSettings
-                //Settings settings = await _appDBContext.Settings.FirstOrDefaultAsync(c => c.Id.Equals(1));
-
                 _logger.LogInformation($">_ Trying to Authenticate... " + DateTime.Now);
 
                 // Only show for debugging reasons
                 //_logger.LogInformation($" " + _options.APIKey + "\n" + _options.APISecret + "\n" + _options.AccessToken + "\n" + _options.AccessSecret);
+
                 // Auth
                 // User client
                 var appClient = new TwitterClient(_options.APIKey, _options.APISecret, _options.AccessToken, _options.AccessSecret);
                 var authenticatedUser = await appClient.Users.GetAuthenticatedUserAsync();
-
                 _logger.LogInformation($">_ LoggedIn as " + authenticatedUser.ScreenName + " " + DateTime.Now);
-
                 _appClient = appClient;
-
             }
             catch (TwitterAuthException ex)
             {
@@ -82,7 +74,6 @@ namespace TwitterStreamWorker
             {
                 await StartStreamAsync(_appClient, stoppingToken);
             }
-
         }
         public async Task StartStreamAsync(TwitterClient _appClient, CancellationToken stoppingToken)
         {
@@ -212,9 +203,11 @@ namespace TwitterStreamWorker
                         int hashtagCount = tweet.Hashtags.Count;
                         int mediaCount = tweet.Media.Count;
                         int mentionsCount = 0;
-                        if (tweet.InReplyToScreenName != null)
+                        if (tweet.Entities.UserMentions.Count > 0)
                         {
-                            mentionsCount = tweet.InReplyToScreenName.Length;
+                            //_logger.LogInformation($">_ Tweet has mentions...");
+                            mentionsCount = tweet.Entities.UserMentions.Count;
+                            //_logger.LogInformation($">_ Mentions: " + mentionsCount);
                         }
 
                         var random = new Random();
@@ -292,7 +285,7 @@ namespace TwitterStreamWorker
                                 + "\n"
                                 + "\n HashtagCount: " + tweet.Hashtags.Count
                                 + "\n MediaCount: " + tweet.Media.Count
-                                + "\n"
+                                + "\n MentionsCount: " + mentionsCount
                                 );
 
                             try
