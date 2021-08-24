@@ -181,7 +181,7 @@ namespace TwitterStreamWorker
                     stream.AddTrack(track);
                 }
 
-                // Only match the addfollows
+                // Only match hashtag entities
                 stream.MatchOn = MatchOn.HashTagEntities;
 
                 //--------------------------------------------------------------------------------------------------------------------
