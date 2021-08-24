@@ -216,7 +216,7 @@ namespace TwitterStreamWorker
                         if (tweet.IsRetweet == true)
                         {
                             // Return if retweet
-                            _logger.LogInformation($">_ Skipped because retweet...");
+                            //_logger.LogInformation($">_ Skipped because retweet...");
                             return;
                         }
                         if (timerRandom > _options.TimerThreshold)
