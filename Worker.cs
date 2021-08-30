@@ -219,6 +219,12 @@ namespace TwitterStreamWorker
                             return;
                         }
 
+                        if (tweet.QuotedTweet != null )
+                        {
+                            _logger.LogInformation($">_ Skipped because quoted tweet...");
+                            return;
+                        }
+
                         var random = new Random();
                         var timerRandom = random.Next(_options.TimerRandomMin, _options.TimerRandomMax);
 
