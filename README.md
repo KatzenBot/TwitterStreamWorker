@@ -24,10 +24,7 @@ Generates a stream of tweets from given hashtags and publishes a retweet to the 
     "BlockedUsers": [
       "userid",
       "nextuserid"
-    ],
-    "TimerRandomMax": 100,
-    "TimerRandomMin": 0,
-    "TimerThreshold": 40
+    ]
   },
   "Logging": {
     "LogLevel": {
