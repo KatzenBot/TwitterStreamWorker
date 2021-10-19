@@ -13,7 +13,6 @@ Generates a stream of tweets from given hashtags and publishes a retweet to the 
     "AccessToken": "",
     "AccessSecret": "",
     "StreamTracks": [
-
       "TrackOne",
       "TrackTwo",
     ],
