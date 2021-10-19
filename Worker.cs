@@ -40,10 +40,6 @@ namespace TwitterStreamWorker
             public string[] StreamTracks { get; set; }
             public string[] BadWords { get; set; }
             public long[] BlockedUsers { get; set; }
-
-            public int TimerRandomMax { get; set; }
-            public int TimerRandomMin { get; set; }
-            public int TimerThreshold { get; set; }
         }
         public async Task AuthTwitter(CancellationToken stoppingToken)
         {
@@ -225,19 +221,10 @@ namespace TwitterStreamWorker
                             return;
                         }
 
-                        var random = new Random();
-                        var timerRandom = random.Next(_options.TimerRandomMin, _options.TimerRandomMax);
-
                         if (tweet.IsRetweet == true)
                         {
                             // Return if retweet
                             //_logger.LogInformation($">_ Skipped because retweet...");
-                            return;
-                        }
-                        if (timerRandom > _options.TimerThreshold)
-                        {
-                            // Return because of posting threshold
-                            _logger.LogInformation($">_ Skipped because timer threshold hit..." + timerRandom);
                             return;
                         }
                         if (mentionsCount > 1)
