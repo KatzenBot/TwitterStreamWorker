@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <UserSecretsId>dotnet-TwitterStreamWorker-BF9E1CF0-F097-4598-896A-711EC0436783</UserSecretsId>
-    <Description>This is a basic setup for a C# .NET 5.0 Twitterbot using Tweetinvi and Serilog. For configuration please create a appsettings.json like shown on github.</Description>
+    <Description>This is a basic setup for a C# .NET 6.0 Twitterbot using Tweetinvi and Serilog. For configuration please create a appsettings.json like shown on github.</Description>
     <PackageProjectUrl>https://scobiform.com/twitterstreamworker</PackageProjectUrl>
   </PropertyGroup>
 
