@@ -36,10 +36,10 @@ namespace TwitterStreamWorker
             public string APISecret { get; set; }
             public string AccessToken { get; set; }
             public string AccessSecret { get; set; }
-
             public string[] StreamTracks { get; set; }
             public string[] BadWords { get; set; }
             public long[] BlockedUsers { get; set; }
+            public long[] ReTweetProfiles { get; set; }
         }
         public async Task AuthTwitter(CancellationToken stoppingToken)
         {
@@ -176,6 +176,9 @@ namespace TwitterStreamWorker
                     //_logger.LogInformation($"" + track);
                     stream.AddTrack(track);
                 }
+
+                // Getting profiles that will be retweeted regardless of stream tracks
+                var reTweetProfiles = _options.ReTweetProfiles.ToList();
 
                 // Only match hashtag entities
                 stream.MatchOn = MatchOn.HashTagEntities;

@@ -23,6 +23,10 @@ Generates a stream of tweets from given hashtags and publishes a retweet to the 
     "BlockedUsers": [
       "userid",
       "nextuserid"
+    ],
+    "ReTweetProfiles": [
+        "TwitterId",
+        "NextTwitterId"
     ]
   },
   "Logging": {
