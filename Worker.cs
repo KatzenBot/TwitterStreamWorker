@@ -85,7 +85,6 @@ namespace TwitterStreamWorker
                 TweetinviEvents.WaitingForRateLimit += (sender, args) =>
                 {
                     _logger.LogInformation($"\n >>> Waiting for rate limits... ");
-                    Task.Delay(TimeSpan.FromHours(3));
                 };
 
                 // subscribe to application level events
@@ -94,6 +93,9 @@ namespace TwitterStreamWorker
                     // application level logging
                     _logger.LogInformation($"\n >>> Event: " + args.Url + "\n");
                 };
+
+                // RateLimits
+                _appClient.Config.RateLimitTrackerMode = RateLimitTrackerMode.TrackAndAwait;
 
                 // Create Stream
                 var stream = _appClient.Streams.CreateFilteredStream();
@@ -192,6 +194,7 @@ namespace TwitterStreamWorker
                 // Hit when matching tweet is received
                 stream.MatchingTweetReceived += async (sender, args) =>
                 {
+                   
                     if (args.MatchOn == stream.MatchOn)
                     { 
                         var tweet = args.Tweet;
@@ -293,7 +296,14 @@ namespace TwitterStreamWorker
                             }
                             catch (TwitterException ex)
                             {
-                                _logger.LogInformation($"TwitterEx... " + ex.Message);
+                                if (ex.StatusCode == 403)
+                                {
+                                    _logger.LogInformation($"TwitterEx... " + ex.Message);
+                                }
+                                else
+                                {
+                                    _logger.LogInformation($"TwitterEx... " + ex.Message);
+                                }
                             }
                         }
                     }
@@ -336,8 +346,34 @@ namespace TwitterStreamWorker
 
             secondStream.MatchingTweetReceived += async (sender, args) =>
             {
-                _logger.LogInformation($">_ AddFollow posted new tweet");
+                try
+                {
+                    var tweet = args.Tweet;
+                    string fulltext = tweet.FullText;
+                    int hashtagCount = tweet.Hashtags.Count;
+                    int mediaCount = tweet.Media.Count;
 
+                    if (tweet.QuotedTweet != null)
+                    {
+                        _logger.LogInformation($">_ Skipped because quoted tweet...");
+                        return;
+                    }
+
+                    if (tweet.IsRetweet == true)
+                    {
+                        // Return if retweet
+                        //_logger.LogInformation($">_ Skipped because retweet...");
+                        return;
+                    }
+
+                    _logger.LogInformation($">_ AddFollow posted new tweet");
+                    // Publish Retweet
+                    await _appClient.Tweets.PublishRetweetAsync(args.Tweet.Id);
+                }
+                catch (TwitterException ex)
+                {
+                    _logger.LogInformation($"TwitterEx... " + ex.Message);
+                }
             };
             await secondStream.StartMatchingAllConditionsAsync().ConfigureAwait(true);
         }
