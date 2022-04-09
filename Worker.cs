@@ -289,7 +289,7 @@ namespace TwitterStreamWorker
                             {
                                 // Publish retweet
                                 //_logger.LogInformation($">_ Publish retweet...");
-                                //await _appClient.Tweets.PublishRetweetAsync(tweet);
+                                await _appClient.Tweets.PublishRetweetAsync(tweet);
                             }
                             catch (TwitterException ex)
                             {
