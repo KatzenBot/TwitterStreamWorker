@@ -177,10 +177,7 @@ namespace TwitterStreamWorker
                     stream.AddTrack(track);
                 }
 
-                // Getting profiles that will be retweeted regardless of stream tracks
-                var reTweetProfiles = _options.ReTweetProfiles.ToList();
-
-                // Only match hashtag entities
+                // Only match hashtag entities OR Follower (reTweetProfiles)
                 stream.MatchOn = MatchOn.HashTagEntities;
 
                 //--------------------------------------------------------------------------------------------------------------------
@@ -201,7 +198,7 @@ namespace TwitterStreamWorker
                         string fulltext = tweet.FullText;
                         int hashtagCount = tweet.Hashtags.Count;
                         int mediaCount = tweet.Media.Count;
-                        
+
                         // Check for too many mentions
                         int mentionsCount = 0;
                         if (tweet.Entities.UserMentions.Count > 0)
@@ -292,7 +289,7 @@ namespace TwitterStreamWorker
                             {
                                 // Publish retweet
                                 //_logger.LogInformation($">_ Publish retweet...");
-                                await _appClient.Tweets.PublishRetweetAsync(tweet);
+                                //await _appClient.Tweets.PublishRetweetAsync(tweet);
                             }
                             catch (TwitterException ex)
                             {
@@ -302,6 +299,11 @@ namespace TwitterStreamWorker
                     }
                     await Task.CompletedTask.ConfigureAwait(true);
                 };
+
+                // Open second stream in paralell
+                Parallel.Invoke(async () => await SecondStream());
+
+                // Start first stream
                 await stream.StartMatchingAllConditionsAsync().ConfigureAwait(true);
             }
             catch (ArgumentException ex)
@@ -316,6 +318,28 @@ namespace TwitterStreamWorker
 
                 await Task.Delay(1000, stoppingToken);
             }   
+        }
+        public async Task SecondStream()
+        {
+            // Opening second stream for AddFollows
+            _logger.LogInformation(">_ Opening second stream");
+            var secondStream = _appClient.Streams.CreateFilteredStream();
+
+            // Getting profiles that will be retweeted
+            _logger.LogInformation(">_ Loading twitter Ids for AddFollows");
+            var reTweetProfiles = _options.ReTweetProfiles.ToList();
+
+            foreach (var follower in reTweetProfiles)
+            {
+                secondStream.AddFollow(follower);
+            }
+
+            secondStream.MatchingTweetReceived += async (sender, args) =>
+            {
+                _logger.LogInformation($">_ AddFollow posted new tweet");
+
+            };
+            await secondStream.StartMatchingAllConditionsAsync().ConfigureAwait(true);
         }
     }
 }
