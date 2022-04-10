@@ -94,9 +94,6 @@ namespace TwitterStreamWorker
                     _logger.LogInformation($"\n >>> Event: " + args.Url + "\n");
                 };
 
-                // RateLimits
-                _appClient.Config.RateLimitTrackerMode = RateLimitTrackerMode.TrackAndAwait;
-
                 // Create Stream
                 var stream = _appClient.Streams.CreateFilteredStream();
 
@@ -193,14 +190,20 @@ namespace TwitterStreamWorker
 
                 // Hit when matching tweet is received
                 stream.MatchingTweetReceived += async (sender, args) =>
-                {
-                   
+                { 
                     if (args.MatchOn == stream.MatchOn)
                     { 
                         var tweet = args.Tweet;
                         string fulltext = tweet.FullText;
                         int hashtagCount = tweet.Hashtags.Count;
                         int mediaCount = tweet.Media.Count;
+
+                        // Check if reply
+                        if (tweet.InReplyToScreenName != null)
+                        {
+                            _logger.LogInformation($">_ Skipped because Tweet is a reply...");
+                            return;
+                        }
 
                         // Check for too many mentions
                         int mentionsCount = 0;
@@ -218,18 +221,22 @@ namespace TwitterStreamWorker
                             return;
                         }
 
+                        // Check if quoted tweet
                         if (tweet.QuotedTweet != null )
                         {
                             _logger.LogInformation($">_ Skipped because quoted tweet...");
                             return;
                         }
 
+                        // Check if retweet
                         if (tweet.IsRetweet == true)
                         {
                             // Return if retweet
                             //_logger.LogInformation($">_ Skipped because retweet...");
                             return;
                         }
+
+                        // Check if mentions too high
                         if (mentionsCount > 1)
                         {
                             // Return if too many mentions
@@ -311,7 +318,7 @@ namespace TwitterStreamWorker
                 };
 
                 // Open second stream in paralell
-                Parallel.Invoke(async () => await SecondStream());
+                //Parallel.Invoke(async () => await SecondStream());
 
                 // Start first stream
                 await stream.StartMatchingAllConditionsAsync().ConfigureAwait(true);
@@ -352,6 +359,13 @@ namespace TwitterStreamWorker
                     string fulltext = tweet.FullText;
                     int hashtagCount = tweet.Hashtags.Count;
                     int mediaCount = tweet.Media.Count;
+
+                    // Check if 
+                    if (tweet.InReplyToScreenName != null)
+                    {
+                        _logger.LogInformation($">_ Skipped because Tweet is a reply...");
+                        return;
+                    }
 
                     if (tweet.QuotedTweet != null)
                     {
