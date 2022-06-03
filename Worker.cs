@@ -17,11 +17,16 @@ namespace TwitterStreamWorker
         private readonly ILogger<Worker> _logger;
         private readonly WorkerOptions _options;
         private TwitterClient _appClient;
+        public List<Tweetinvi.Models.ITweet> PublishTweets { get; set; } = new List<Tweetinvi.Models.ITweet>();
+        public List<long> TweetUsers { get; set; } = new List<long>();
         public Worker(ILogger<Worker> logger, WorkerOptions options)
         {
             _logger = logger;
             _options = options;
         }
+        /// <summary>
+        /// Execute WorkerService as a background service
+        /// </summary>
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
@@ -30,6 +35,9 @@ namespace TwitterStreamWorker
                 await AuthTwitter(stoppingToken);
             }
         }
+        /// <summary>
+        /// WorkerOptions from appsettings.json
+        /// </summary>
         public class WorkerOptions
         {
             public string APIKey { get; set; }
@@ -40,7 +48,12 @@ namespace TwitterStreamWorker
             public string[] BadWords { get; set; }
             public long[] BlockedUsers { get; set; }
             public long[] ReTweetProfiles { get; set; }
+            public string[] ContentPublishing { get; set; }
         }
+        /// <summary>
+        /// Authenticate via Twitter API - tweetinvi https://github.com/linvi/tweetinvi
+        /// Start twitter stream if successful
+        /// </summary>
         public async Task AuthTwitter(CancellationToken stoppingToken)
         {
             try
@@ -71,10 +84,15 @@ namespace TwitterStreamWorker
                 await StartStreamAsync(_appClient, stoppingToken);
             }
         }
+        /// <summary>
+        /// Start twitter stream on all conditions and filter tweets the publishing queue 
+        /// 
+        /// </summary>
         public async Task StartStreamAsync(TwitterClient _appClient, CancellationToken stoppingToken)
         {
             try
             {
+
                 // Before executing request
                 TweetinviEvents.BeforeExecutingRequest += (sender, args) =>
                 {
@@ -198,6 +216,8 @@ namespace TwitterStreamWorker
                         int hashtagCount = tweet.Hashtags.Count;
                         int mediaCount = tweet.Media.Count;
 
+                        // Change statements to a switch
+
                         // Check if reply
                         if (tweet.InReplyToScreenName != null)
                         {
@@ -250,6 +270,14 @@ namespace TwitterStreamWorker
                             _logger.LogInformation($">_ Too many hashtags...");
                             return;
                         }
+                        // Check if user already posted
+                        if (TweetUsers.Contains(tweet.CreatedBy.Id) == true)
+                        {
+                            // Remove from Userlist after delay
+                            await Task.Delay(TimeSpan.FromSeconds(6));
+                            TweetUsers.Remove(tweet.CreatedBy.Id);
+                            return;
+                        }
                         if (mediaCount < 1)
                         {
                             // Only tweet if media attached
@@ -297,9 +325,12 @@ namespace TwitterStreamWorker
 
                             try
                             {
-                                // Publish retweet
-                                //_logger.LogInformation($">_ Publish retweet...");
-                                await _appClient.Tweets.PublishRetweetAsync(tweet);
+                                // Add user Id to Posting queue
+                                TweetUsers.Add(tweet.CreatedBy.Id);
+                                // Add Tweet to Publishing queue
+                                PublishTweets.Add(tweet);
+                                
+                                //await _appClient.Tweets.PublishRetweetAsync(tweet);
                             }
                             catch (TwitterException ex)
                             {
@@ -317,8 +348,11 @@ namespace TwitterStreamWorker
                     await Task.CompletedTask.ConfigureAwait(true);
                 };
 
-                // Open second stream in paralell
-                //Parallel.Invoke(async () => await SecondStream());
+                // Publish Media in paralell task
+                Parallel.Invoke(async () => await PublishMedia());
+
+                // Content publishing in paralell 
+                //Parallel.Invoke(async () => await ContentPublishing());
 
                 // Start first stream
                 await stream.StartMatchingAllConditionsAsync().ConfigureAwait(true);
@@ -334,62 +368,89 @@ namespace TwitterStreamWorker
                 _logger.LogError($"Exception... " + ex.Message);
 
                 await Task.Delay(1000, stoppingToken);
-            }   
+            }
         }
-        public async Task SecondStream()
+
+        /// <summary>
+        /// Publish Media Tweets with Ratelimits in a queue 
+        /// ToDo: Calculate spam score
+        /// </summary>
+        public async Task PublishMedia()
         {
-            // Opening second stream for AddFollows
-            _logger.LogInformation(">_ Opening second stream");
-            var secondStream = _appClient.Streams.CreateFilteredStream();
 
-            // Getting profiles that will be retweeted
-            _logger.LogInformation(">_ Loading twitter Ids for AddFollows");
-            var reTweetProfiles = _options.ReTweetProfiles.ToList();
-
-            foreach (var follower in reTweetProfiles)
+            _logger.LogInformation(">_ Media publishing is starting...");
+            // If cattweets are null on startup wait for timeframe
+            if (PublishTweets == null)
             {
-                secondStream.AddFollow(follower);
+                await Task.Delay(TimeSpan.FromSeconds(180));
             }
 
-            secondStream.MatchingTweetReceived += async (sender, args) =>
+            // endless loop service for publishing cat tweets
+            while (PublishTweets.Count() != -1)
             {
-                try
+                if (PublishTweets.Count() == 0)
                 {
-                    var tweet = args.Tweet;
-                    string fulltext = tweet.FullText;
-                    int hashtagCount = tweet.Hashtags.Count;
-                    int mediaCount = tweet.Media.Count;
-
-                    // Check if 
-                    if (tweet.InReplyToScreenName != null)
-                    {
-                        _logger.LogInformation($">_ Skipped because Tweet is a reply...");
-                        return;
-                    }
-
-                    if (tweet.QuotedTweet != null)
-                    {
-                        _logger.LogInformation($">_ Skipped because quoted tweet...");
-                        return;
-                    }
-
-                    if (tweet.IsRetweet == true)
-                    {
-                        // Return if retweet
-                        //_logger.LogInformation($">_ Skipped because retweet...");
-                        return;
-                    }
-
-                    _logger.LogInformation($">_ AddFollow posted new tweet");
-                    // Publish Retweet
-                    await _appClient.Tweets.PublishRetweetAsync(args.Tweet.Id);
+                    // Post content every Time queue hits 0 and wait for 120 seconds
+                    await Task.Delay(TimeSpan.FromSeconds(120));
                 }
-                catch (TwitterException ex)
+
+                foreach (var tweet in PublishTweets.ToList())
                 {
-                    _logger.LogInformation($"TwitterEx... " + ex.Message);
+                    _logger.LogInformation("Tweets in publishing queue: " + PublishTweets.Count());
+                    _logger.LogInformation("Users in posting queue: " + TweetUsers.Count());
+                    // Timer
+                    // RateLimits
+                    await Task.Delay(TimeSpan.FromSeconds(40));
+                    try
+                    {
+                        // Publish Tweet
+                        await _appClient.Tweets.PublishRetweetAsync(tweet);
+                        _logger.LogInformation("Posted Tweet with Id: " + tweet.Id);
+                        // Remove Tweet from queue
+                        PublishTweets.Remove(tweet);
+                        // Remove from Userlist
+                        TweetUsers.Remove(tweet.CreatedBy.Id);
+                    }
+                    catch(Exception ex)
+                    {
+                        _logger.LogInformation(ex.Message);
+                        PublishTweets.Remove(tweet);
+                    }
                 }
-            };
-            await secondStream.StartMatchingAllConditionsAsync().ConfigureAwait(true);
+            }
+        }
+
+        /// <summary>
+        /// ContentPublishing queue
+        /// </summary>
+        public async Task ContentPublishing()
+        {
+            _logger.LogInformation(">_ Content publishing is starting...");
+            var contentList = _options.ContentPublishing;
+
+            if (contentList == null)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5));
+            }
+
+            while(contentList.Count() != -1)
+            {
+                //Post content in timeframe
+                //Shuffle the list 
+                foreach(var tweet in contentList)
+                {
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromMinutes(60));
+                        await _appClient.Tweets.PublishTweetAsync(tweet);
+                        _logger.LogInformation("Posting content: " + tweet);
+                    }
+                    catch(TwitterException ex)
+                    {
+                        _logger.LogCritical(ex.Message);
+                    }
+                }
+            }
         }
     }
 }
