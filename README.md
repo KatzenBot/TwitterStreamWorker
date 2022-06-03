@@ -27,6 +27,10 @@ Generates a stream of tweets from given hashtags and publishes a retweet to the 
     "ReTweetProfiles": [
         "TwitterId",
         "NextTwitterId"
+    ],
+    "ContentPublishing": [
+        "",
+        ""
     ]
   },
   "Logging": {
