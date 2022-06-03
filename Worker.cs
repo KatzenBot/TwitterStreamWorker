@@ -426,10 +426,16 @@ namespace TwitterStreamWorker
         public async Task ContentPublishing()
         {
             _logger.LogInformation(">_ Content publishing is starting...");
-            var contentList = _options.ContentPublishing;
+            var contentTempList = _options.ContentPublishing;
 
+            // Pretty simple shuffle
+            var rnd = new Random();
+            var contentList = contentTempList.OrderBy(item => rnd.Next());
+
+            // Check if not content is listed in appSettings.json
             if (contentList == null)
             {
+                _logger.LogCritical(">_ No content to publish...");
                 await Task.Delay(TimeSpan.FromSeconds(5));
             }
 
