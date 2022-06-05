@@ -17,7 +17,7 @@ namespace TwitterStreamWorker
         private readonly ILogger<Worker> _logger;
         private readonly WorkerOptions _options;
         private TwitterClient _appClient;
-        public List<Tweetinvi.Models.ITweet> PublishTweets { get; set; } = new List<Tweetinvi.Models.ITweet>();
+        public List<long> PublishTweets { get; set; } = new List<long>();
         public List<long> TweetUsers { get; set; } = new List<long>();
         public Worker(ILogger<Worker> logger, WorkerOptions options)
         {
@@ -274,7 +274,8 @@ namespace TwitterStreamWorker
                         if (TweetUsers.Contains(tweet.CreatedBy.Id) == true)
                         {
                             // Remove from Userlist after delay
-                            await Task.Delay(TimeSpan.FromSeconds(6));
+                            await Task.Delay(TimeSpan.FromSeconds(60));
+                            _logger.LogInformation("Removed user from posting queue");
                             TweetUsers.Remove(tweet.CreatedBy.Id);
                             return;
                         }
@@ -328,8 +329,13 @@ namespace TwitterStreamWorker
                                 // Add user Id to Posting queue
                                 TweetUsers.Add(tweet.CreatedBy.Id);
                                 // Add Tweet to Publishing queue
-                                PublishTweets.Add(tweet);
-                                
+                                // add tweet id to list
+                                // check if list already contains id
+                                if(PublishTweets.Contains(tweet.Id) != true)
+                                {
+                                    PublishTweets.Add(tweet.Id);
+                                }
+
                                 //await _appClient.Tweets.PublishRetweetAsync(tweet);
                             }
                             catch (TwitterException ex)
@@ -405,11 +411,11 @@ namespace TwitterStreamWorker
                     {
                         // Publish Tweet
                         await _appClient.Tweets.PublishRetweetAsync(tweet);
-                        _logger.LogInformation("Posted Tweet with Id: " + tweet.Id);
+                        _logger.LogInformation("Posted Tweet with Id: " + tweet);
                         // Remove Tweet from queue
                         PublishTweets.Remove(tweet);
                         // Remove from Userlist
-                        TweetUsers.Remove(tweet.CreatedBy.Id);
+                        TweetUsers.Remove(tweet);
                     }
                     catch(Exception ex)
                     {
