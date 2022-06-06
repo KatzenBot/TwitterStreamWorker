@@ -275,7 +275,7 @@ namespace TwitterStreamWorker
                         {
                             // Remove from Userlist after delay
                             await Task.Delay(TimeSpan.FromSeconds(60));
-                            _logger.LogInformation("Removed user from posting queue");
+                            _logger.LogInformation(">_ Removed user from posting queue...");
                             TweetUsers.Remove(tweet.CreatedBy.Id);
                             return;
                         }
@@ -414,8 +414,6 @@ namespace TwitterStreamWorker
                         _logger.LogInformation("Posted Tweet with Id: " + tweet);
                         // Remove Tweet from queue
                         PublishTweets.Remove(tweet);
-                        // Remove from Userlist
-                        TweetUsers.Remove(tweet);
                     }
                     catch(Exception ex)
                     {
