@@ -194,7 +194,7 @@ namespace TwitterStreamWorker
                     stream.AddTrack(track);
                 }
 
-                // Only match hashtag entities OR Follower (reTweetProfiles)
+                // Only match hashtag entities
                 stream.MatchOn = MatchOn.HashTagEntities;
 
                 //--------------------------------------------------------------------------------------------------------------------
