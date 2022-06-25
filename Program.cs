@@ -16,7 +16,7 @@ namespace TwitterStreamWorker
         {
             Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
-            .WriteTo.File("log.txt")
+            .WriteTo.File("log/log.txt", rollingInterval: RollingInterval.Day, fileSizeLimitBytes: 100000000)
             .WriteTo.Console()
             .CreateLogger();
 

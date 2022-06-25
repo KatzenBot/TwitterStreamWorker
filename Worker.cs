@@ -270,6 +270,7 @@ namespace TwitterStreamWorker
                             _logger.LogInformation($">_ Too many hashtags...");
                             return;
                         }
+
                         // Check if user already posted
                         if (TweetUsers.Contains(tweet.CreatedBy.Id) == true)
                         {
@@ -279,6 +280,8 @@ namespace TwitterStreamWorker
                             TweetUsers.Remove(tweet.CreatedBy.Id);
                             return;
                         }
+
+                        // Check if tweet has media attached
                         if (mediaCount < 1)
                         {
                             // Only tweet if media attached
@@ -312,20 +315,18 @@ namespace TwitterStreamWorker
                             }
                             // Show Tweet debug details
                             _logger.LogInformation(
-                                  "\n "
-                                + "\n TweetId: " + tweet.Id
+                                 "\n TweetId: " + tweet.Id
                                 + "\n Date: " + tweet.CreatedAt
                                 + "\n Author: " + tweet.CreatedBy
-                                + "\n AuthorId: " + tweet.CreatedBy.Id + "\n"
-                                + "\n " + tweet.FullText + "\n"
+                                + "\n AuthorId: " + tweet.CreatedBy.Id
                                 + "\n HashtagCount: " + tweet.Hashtags.Count
                                 + "\n MediaCount: " + tweet.Media.Count
                                 + "\n MentionsCount: " + mentionsCount
                                 + "\n "
                                 );
-
                             try
                             {
+                                
                                 // Add user Id to Posting queue
                                 TweetUsers.Add(tweet.CreatedBy.Id);
                                 // Add Tweet to Publishing queue
@@ -333,9 +334,10 @@ namespace TwitterStreamWorker
                                 // check if list already contains id
                                 if(PublishTweets.Contains(tweet.Id) != true)
                                 {
+
                                     PublishTweets.Add(tweet.Id);
                                 }
-
+                                
                                 //await _appClient.Tweets.PublishRetweetAsync(tweet);
                             }
                             catch (TwitterException ex)
@@ -347,6 +349,7 @@ namespace TwitterStreamWorker
                                 else
                                 {
                                     _logger.LogInformation($"TwitterEx... " + ex.Message);
+                                    PublishTweets.Remove(args.Tweet.Id);
                                 }
                             }
                         }
@@ -379,7 +382,6 @@ namespace TwitterStreamWorker
 
         /// <summary>
         /// Publish Media Tweets with Ratelimits in a queue 
-        /// ToDo: Calculate spam score
         /// </summary>
         public async Task PublishMedia()
         {
@@ -388,10 +390,10 @@ namespace TwitterStreamWorker
             // If cattweets are null on startup wait for timeframe
             if (PublishTweets == null)
             {
-                await Task.Delay(TimeSpan.FromSeconds(180));
+                await Task.Delay(TimeSpan.FromSeconds(120));
             }
 
-            // endless loop service for publishing cat tweets
+            // endless loop service for publishing tweets
             while (PublishTweets.Count() != -1)
             {
                 if (PublishTweets.Count() == 0)
