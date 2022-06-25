@@ -361,7 +361,7 @@ namespace TwitterStreamWorker
                 Parallel.Invoke(async () => await PublishMedia());
 
                 // Content publishing in paralell 
-                //Parallel.Invoke(async () => await ContentPublishing());
+                Parallel.Invoke(async () => await ContentPublishing());
 
                 // Start first stream
                 await stream.StartMatchingAllConditionsAsync().ConfigureAwait(true);
@@ -404,8 +404,8 @@ namespace TwitterStreamWorker
 
                 foreach (var tweet in PublishTweets.ToList())
                 {
-                    _logger.LogInformation("Tweets in publishing queue: " + PublishTweets.Count());
-                    _logger.LogInformation("Users in posting queue: " + TweetUsers.Count());
+                    _logger.LogInformation(">_ Tweets in publishing queue: " + PublishTweets.Count());
+                    _logger.LogInformation(">_ Users in posting queue: " + TweetUsers.Count());
                     // Timer
                     // RateLimits
                     await Task.Delay(TimeSpan.FromSeconds(40));
@@ -413,7 +413,7 @@ namespace TwitterStreamWorker
                     {
                         // Publish Tweet
                         await _appClient.Tweets.PublishRetweetAsync(tweet);
-                        _logger.LogInformation("Posted Tweet with Id: " + tweet);
+                        _logger.LogInformation(">_ Posted Tweet with Id: " + tweet);
                         // Remove Tweet from queue
                         PublishTweets.Remove(tweet);
                     }
@@ -453,9 +453,10 @@ namespace TwitterStreamWorker
                 {
                     try
                     {
+                        _logger.LogInformation(">_ Waiting to publish new content...");
                         await Task.Delay(TimeSpan.FromMinutes(60));
                         await _appClient.Tweets.PublishTweetAsync(tweet);
-                        _logger.LogInformation("Posting content: " + tweet);
+                        _logger.LogInformation(">_ Publish content: " + tweet);
                     }
                     catch(TwitterException ex)
                     {
