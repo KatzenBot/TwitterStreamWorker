@@ -454,7 +454,7 @@ namespace TwitterStreamWorker
                     try
                     {
                         _logger.LogInformation(">_ Waiting to publish new content...");
-                        await Task.Delay(TimeSpan.FromMinutes(60));
+                        await Task.Delay(TimeSpan.FromMinutes(120));
                         await _appClient.Tweets.PublishTweetAsync(tweet);
                         _logger.LogInformation(">_ Publish content: " + tweet);
                     }
