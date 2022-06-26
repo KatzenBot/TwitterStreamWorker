@@ -408,7 +408,7 @@ namespace TwitterStreamWorker
                     _logger.LogInformation(">_ Users in posting queue: " + TweetUsers.Count());
                     // Timer
                     // RateLimits
-                    await Task.Delay(TimeSpan.FromSeconds(40));
+                    await Task.Delay(TimeSpan.FromSeconds(38));
                     try
                     {
                         // Publish Tweet
