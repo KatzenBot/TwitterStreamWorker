@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Serilog;
 using Tweetinvi;
 using Tweetinvi.Exceptions;
 using Tweetinvi.Streaming;
@@ -112,6 +111,10 @@ namespace TwitterStreamWorker
                     _logger.LogInformation($"\n >>> Event: " + args.Url + "\n");
                 };
 
+                // For a client to be included in the application events you will need to subscribe to this client's events
+                TweetinviEvents.SubscribeToClientEvents(_appClient); // Check if working
+
+
                 // Create Stream
                 var stream = _appClient.Streams.CreateFilteredStream();
 
@@ -120,7 +123,6 @@ namespace TwitterStreamWorker
                 stream.StallWarnings = true;
 
                 //--------------------------------------------------------------------------------------------------------------------
-
                 #region ======> KeepAliveReceived | StreamStarted | StreamResumed | StreamStopped | WarningFallingBehindDetected 
 
                 stream.KeepAliveReceived += async (sender, args) =>
@@ -179,11 +181,10 @@ namespace TwitterStreamWorker
                 };
 
                 #endregion
-
                 //--------------------------------------------------------------------------------------------------------------------
-                // Start the Stream with the Settings
-                // 
-
+                
+                // => Start the Stream with the given settings
+                
                 // Getting stream tracks from settings
                 var tracks = _options.StreamTracks.ToList();
 
@@ -201,6 +202,7 @@ namespace TwitterStreamWorker
                 // Mainstream
                 //
 
+                // Loading bad words and blocked users from appSettings 
                 _logger.LogInformation($">_ Loading bad Words from appsettings...");
                 var badWords = _options.BadWords.ToList();
                 _logger.LogInformation($">_ Loading blocked users from appsettings...");
@@ -216,7 +218,9 @@ namespace TwitterStreamWorker
                         int hashtagCount = tweet.Hashtags.Count;
                         int mediaCount = tweet.Media.Count;
 
-                        // Change statements to a switch
+                        // #####################################
+                        // !!! Change statements to a switch !!!
+                        // #####################################
 
                         // Check if reply
                         if (tweet.InReplyToScreenName != null)
@@ -252,7 +256,7 @@ namespace TwitterStreamWorker
                         if (tweet.IsRetweet == true)
                         {
                             // Return if retweet
-                            //_logger.LogInformation($">_ Skipped because retweet...");
+                            _logger.LogInformation($">_ Skipped because retweet...");
                             return;
                         }
 
@@ -309,7 +313,6 @@ namespace TwitterStreamWorker
                                 {
                                     // return if blocked user is found
                                     _logger.LogInformation($">_ Blocked user found: " + user);
-                                    //await _appClient.Users.BlockUserAsync(tweet.CreatedBy);
                                     return;
                                 }
                             }
@@ -326,19 +329,27 @@ namespace TwitterStreamWorker
                                 );
                             try
                             {
-                                
-                                // Add user Id to Posting queue
-                                TweetUsers.Add(tweet.CreatedBy.Id);
+                                // Add user Id to Posting queue if not already in it
+                                if (TweetUsers.Contains(tweet.CreatedBy.Id) != true)
+                                {
+                                    TweetUsers.Add(tweet.CreatedBy.Id);
+                                }
+                                else
+                                {
+                                    // Return is user already in posting queue
+                                    return;
+                                }
                                 // Add Tweet to Publishing queue
                                 // add tweet id to list
                                 // check if list already contains id
                                 if(PublishTweets.Contains(tweet.Id) != true)
                                 {
-
                                     PublishTweets.Add(tweet.Id);
                                 }
-                                
+
                                 //await _appClient.Tweets.PublishRetweetAsync(tweet);
+                                // Return, testing if necessary...
+                                return;
                             }
                             catch (TwitterException ex)
                             {
@@ -390,6 +401,7 @@ namespace TwitterStreamWorker
             // If cattweets are null on startup wait for timeframe
             if (PublishTweets == null)
             {
+                // Move timer value to appSettings
                 await Task.Delay(TimeSpan.FromSeconds(120));
             }
 
@@ -398,7 +410,8 @@ namespace TwitterStreamWorker
             {
                 if (PublishTweets.Count() == 0)
                 {
-                    // Post content every Time queue hits 0 and wait for 120 seconds
+                    // Post content every Time queue hits 0 and wait for x seconds
+                    // move to appSettings
                     await Task.Delay(TimeSpan.FromSeconds(120));
                 }
 
@@ -442,9 +455,10 @@ namespace TwitterStreamWorker
             if (contentList == null)
             {
                 _logger.LogCritical(">_ No content to publish...");
+                // Move value to appSettings
                 await Task.Delay(TimeSpan.FromSeconds(5));
             }
-
+             
             while(contentList.Count() != -1)
             {
                 //Post content in timeframe
@@ -454,6 +468,7 @@ namespace TwitterStreamWorker
                     try
                     {
                         _logger.LogInformation(">_ Waiting to publish new content...");
+                        // Move value to appSettings
                         await Task.Delay(TimeSpan.FromMinutes(120));
                         await _appClient.Tweets.PublishTweetAsync(tweet);
                         _logger.LogInformation(">_ Publish content: " + tweet);
