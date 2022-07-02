@@ -267,6 +267,8 @@ namespace TwitterStreamWorker
                             _logger.LogInformation($">_ Skipped because too many mentions...");
                             return;
                         }
+
+                        // Check for hashtag count
                         if (hashtagCount > 3)
                         {
                             // Check for HashtagCount Limit
@@ -356,6 +358,7 @@ namespace TwitterStreamWorker
                                 if (ex.StatusCode == 403)
                                 {
                                     _logger.LogInformation($"TwitterEx... " + ex.Message);
+                                    PublishTweets.Remove(args.Tweet.Id);
                                 }
                                 else
                                 {
