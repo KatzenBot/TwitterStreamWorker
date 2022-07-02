@@ -84,7 +84,7 @@ namespace TwitterStreamWorker
             }
         }
         /// <summary>
-        /// Start twitter stream on all conditions and filter tweets the publishing queue 
+        /// Start twitter stream on all conditions and filter tweets to the publishing queue 
         /// 
         /// </summary>
         public async Task StartStreamAsync(TwitterClient _appClient, CancellationToken stoppingToken)
