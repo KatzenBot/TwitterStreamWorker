@@ -454,7 +454,7 @@ namespace TwitterStreamWorker
             var rnd = new Random();
             var contentList = contentTempList.OrderBy(item => rnd.Next());
 
-            // Check if not content is listed in appSettings.json
+            // Check if no content is listed in appSettings.json
             if (contentList == null)
             {
                 _logger.LogCritical(">_ No content to publish...");
