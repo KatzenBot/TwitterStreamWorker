@@ -8,6 +8,9 @@ Generates a stream of tweets from given hashtags and publishes a retweet to the 
 - Download source.
 - Add appsettings.json with
 
+See BOT in action: 
+- https://twitter.com/UnitedSpaceCats
+
 ```
 {
   "Settings": {
