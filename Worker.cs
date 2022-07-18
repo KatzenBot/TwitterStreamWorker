@@ -46,7 +46,6 @@ namespace TwitterStreamWorker
             public string[] StreamTracks { get; set; }
             public string[] BadWords { get; set; }
             public long[] BlockedUsers { get; set; }
-            public long[] ReTweetProfiles { get; set; }
             public string[] ContentPublishing { get; set; }
         }
         /// <summary>
