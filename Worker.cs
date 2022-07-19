@@ -482,5 +482,16 @@ namespace TwitterStreamWorker
                 }
             }
         }
+        /// <summary>
+        /// Timed Events - post special tweets on special times
+        /// </summary>
+        public async Task TimedEvents()
+        {
+            // Import timed events from JSON
+            // If today in collection tweet it
+
+            await Task.Delay(5);
+
+        }
     }
 }
