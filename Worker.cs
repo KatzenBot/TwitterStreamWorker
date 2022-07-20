@@ -490,6 +490,12 @@ namespace TwitterStreamWorker
             // Import timed events from JSON
             // If today in collection tweet it
 
+            // Flag for already posted today
+
+            // Check for todays timestamp
+
+
+
             await Task.Delay(5);
 
         }
