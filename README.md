@@ -15,6 +15,7 @@ Generates a stream of tweets from given hashtags and publishes a retweet to the 
     "APISecret": "",
     "AccessToken": "",
     "AccessSecret": "",
+    "ContentTimeSpan":  60,
     "StreamTracks": [
       "TrackOne",
       "TrackTwo",
