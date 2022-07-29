@@ -47,6 +47,7 @@ namespace TwitterStreamWorker
             public string[] BadWords { get; set; }
             public long[] BlockedUsers { get; set; }
             public string[] ContentPublishing { get; set; }
+            public int ContentTimeSpan {get;set;}
         }
         /// <summary>
         /// Authenticate via Twitter API - tweetinvi https://github.com/linvi/tweetinvi
@@ -471,7 +472,7 @@ namespace TwitterStreamWorker
                     {
                         _logger.LogInformation(">_ Waiting to publish new content...");
                         // Move value to appSettings
-                        await Task.Delay(TimeSpan.FromMinutes(120));
+                        await Task.Delay(TimeSpan.FromMinutes(_options.ContentTimeSpan));
                         await _appClient.Tweets.PublishTweetAsync(tweet);
                         _logger.LogInformation(">_ Publish content: " + tweet);
                     }
