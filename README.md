@@ -1,6 +1,6 @@
 ﻿# TwitterStreamWorker
 Generates a stream of tweets from given hashtags and publishes a retweet to the clients account. Bad words filter and block users included.
-- Using .NET 6.0
+- Using .NET 7.0
 - Using tweetinvi
 - Using SeriLog
 
