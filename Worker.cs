@@ -47,7 +47,8 @@ namespace TwitterStreamWorker
             public string[] BadWords { get; set; }
             public long[] BlockedUsers { get; set; }
             public string[] ContentPublishing { get; set; }
-            public int ContentTimeSpan {get;set;}
+            public int ContentTimeSpan { get; set;}
+            public int RetweetTimeSpan { get;set;}
         }
         /// <summary>
         /// Authenticate via Twitter API - tweetinvi https://github.com/linvi/tweetinvi
@@ -424,7 +425,7 @@ namespace TwitterStreamWorker
                     _logger.LogInformation(">_ Users in posting queue: " + TweetUsers.Count());
                     // Timer
                     // RateLimits
-                    await Task.Delay(TimeSpan.FromSeconds(38));
+                    await Task.Delay(TimeSpan.FromSeconds(_options.RetweetTimeSpan));
                     try
                     {
                         // Publish Tweet
