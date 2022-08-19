@@ -400,7 +400,6 @@ namespace TwitterStreamWorker
         /// </summary>
         public async Task PublishMedia()
         {
-
             _logger.LogInformation(">_ Media publishing is starting...");
             // If cattweets are null on startup wait for timeframe
             if (PublishTweets == null)
@@ -423,8 +422,7 @@ namespace TwitterStreamWorker
                 {
                     _logger.LogInformation(">_ Tweets in publishing queue: " + PublishTweets.Count());
                     _logger.LogInformation(">_ Users in posting queue: " + TweetUsers.Count());
-                    // Timer
-                    // RateLimits
+                    // Timer for RateLimits
                     await Task.Delay(TimeSpan.FromSeconds(_options.RetweetTimeSpan));
                     try
                     {
