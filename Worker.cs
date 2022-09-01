@@ -49,6 +49,8 @@ namespace TwitterStreamWorker
             public string[] ContentPublishing { get; set; }
             public int ContentTimeSpan { get; set;}
             public int RetweetTimeSpan { get;set;}
+            public bool PublishMedia { get; set; }
+            public bool PublishContent { get; set; }
         }
         /// <summary>
         /// Authenticate via Twitter API - tweetinvi https://github.com/linvi/tweetinvi
@@ -183,9 +185,9 @@ namespace TwitterStreamWorker
 
                 #endregion
                 //--------------------------------------------------------------------------------------------------------------------
-                
+
                 // => Start the Stream with the given settings
-                
+
                 // Getting stream tracks from settings
                 var tracks = _options.StreamTracks.ToList();
 
@@ -211,9 +213,9 @@ namespace TwitterStreamWorker
 
                 // Hit when matching tweet is received
                 stream.MatchingTweetReceived += async (sender, args) =>
-                { 
+                {
                     if (args.MatchOn == stream.MatchOn)
-                    { 
+                    {
                         var tweet = args.Tweet;
                         string fulltext = tweet.FullText;
                         int hashtagCount = tweet.Hashtags.Count;
@@ -247,7 +249,7 @@ namespace TwitterStreamWorker
                         }
 
                         // Check if quoted tweet
-                        if (tweet.QuotedTweet != null )
+                        if (tweet.QuotedTweet != null)
                         {
                             _logger.LogInformation($">_ Skipped because quoted tweet...");
                             return;
@@ -332,26 +334,32 @@ namespace TwitterStreamWorker
                                 );
                             try
                             {
-                                // Add user Id to Posting queue if not already in it
-                                if (TweetUsers.Contains(tweet.CreatedBy.Id) != true)
+                                if (_options.PublishMedia == false)
                                 {
-                                    TweetUsers.Add(tweet.CreatedBy.Id);
+                                    await _appClient.Tweets.PublishRetweetAsync(tweet);
                                 }
                                 else
                                 {
-                                    // Return is user already in posting queue
-                                    return;
-                                }
-                                // Add Tweet to Publishing queue
-                                // add tweet id to list
-                                // check if list already contains id
-                                if(PublishTweets.Contains(tweet.Id) != true)
-                                {
-                                    PublishTweets.Add(tweet.Id);
+                                    // Add user Id to Posting queue if not already in it
+                                    if (TweetUsers.Contains(tweet.CreatedBy.Id) != true)
+                                    {
+                                        TweetUsers.Add(tweet.CreatedBy.Id);
+                                    }
+                                    else
+                                    {
+                                        // Return is user already in posting queue
+                                        return;
+                                    }
+                                    // Add Tweet to Publishing queue
+                                    // add tweet id to list
+                                    // check if list already contains id
+                                    if (PublishTweets.Contains(tweet.Id) != true)
+                                    {
+                                        PublishTweets.Add(tweet.Id);
+                                    }
                                 }
 
-                                //await _appClient.Tweets.PublishRetweetAsync(tweet);
-                                // Return, testing if necessary...
+                                // Return
                                 return;
                             }
                             catch (TwitterException ex)
@@ -372,11 +380,17 @@ namespace TwitterStreamWorker
                     await Task.CompletedTask.ConfigureAwait(true);
                 };
 
-                // Publish Media in paralell task
-                Parallel.Invoke(async () => await PublishMedia());
+                if (_options.PublishMedia == true)
+                {
+                    // Publish Media in paralell task
+                    Parallel.Invoke(async () => await PublishMedia());
+                }
 
-                // Content publishing in paralell 
-                Parallel.Invoke(async () => await ContentPublishing());
+                if (_options.PublishContent == true)
+                {
+                    // Content publishing in paralell 
+                    Parallel.Invoke(async () => await ContentPublishing());
+                }
 
                 // Start first stream
                 await stream.StartMatchingAllConditionsAsync().ConfigureAwait(true);
@@ -411,10 +425,10 @@ namespace TwitterStreamWorker
             // endless loop service for publishing tweets
             while (PublishTweets.Count() != -1)
             {
-                if (PublishTweets.Count() == 0)
+                if (PublishTweets == null)
                 {
                     // Post content every Time queue hits 0 and wait for x seconds
-                    // move to appSettings
+                    _logger.LogInformation(">_ Publishing queue: is NULL ");
                     await Task.Delay(TimeSpan.FromSeconds(120));
                 }
 
