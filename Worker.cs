@@ -429,10 +429,10 @@ namespace TwitterStreamWorker
                 {
                     // Post content every Time queue hits 0 and wait for x seconds
                     _logger.LogInformation(">_ Waiting for content in the publishing queue");
-                    await Task.Delay(TimeSpan.FromMinutes(15));
+                    await Task.Delay(TimeSpan.FromMinutes(1));
                 }
 
-                foreach (var tweet in PublishTweets.ToList())
+                for (int i = 0; i < PublishTweets.Count; i++)
                 {
                     _logger.LogInformation(">_ Tweets in publishing queue: " + PublishTweets.Count());
                     _logger.LogInformation(">_ Users in posting queue: " + TweetUsers.Count());
@@ -441,15 +441,15 @@ namespace TwitterStreamWorker
                     try
                     {
                         // Publish Tweet
-                        await _appClient.Tweets.PublishRetweetAsync(tweet);
-                        _logger.LogInformation(">_ Posted Tweet with Id: " + tweet);
+                        await _appClient.Tweets.PublishRetweetAsync(PublishTweets[i]);
+                        _logger.LogInformation(">_ Posted Tweet with Id: " + PublishTweets[i]);
                         // Remove Tweet from queue
-                        PublishTweets.Remove(tweet);
+                        PublishTweets.Remove(PublishTweets[i]);
                     }
                     catch(Exception ex)
                     {
                         _logger.LogInformation(ex.Message);
-                        PublishTweets.Remove(tweet);
+                        PublishTweets.Remove(PublishTweets[i]);
                     }
                 }
             }
