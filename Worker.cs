@@ -428,7 +428,7 @@ namespace TwitterStreamWorker
                 if (PublishTweets.Count() == 0)
                 {
                     // Post content every Time queue hits 0 and wait for x seconds
-                    _logger.LogInformation(">_ Reached end of publishing queue");
+                    _logger.LogInformation(">_ Waiting for content in the publishing queue");
                     await Task.Delay(TimeSpan.FromMinutes(15));
                 }
 
