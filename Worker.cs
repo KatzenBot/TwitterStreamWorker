@@ -425,11 +425,11 @@ namespace TwitterStreamWorker
             // endless loop service for publishing tweets
             while (PublishTweets.Count() != -1)
             {
-                if (PublishTweets == null)
+                if (PublishTweets.Count() == 0)
                 {
                     // Post content every Time queue hits 0 and wait for x seconds
-                    _logger.LogInformation(">_ Publishing queue: is NULL ");
-                    await Task.Delay(TimeSpan.FromSeconds(120));
+                    _logger.LogInformation(">_ Reached end of publishing queue");
+                    await Task.Delay(TimeSpan.FromMinutes(15));
                 }
 
                 foreach (var tweet in PublishTweets.ToList())
@@ -486,7 +486,7 @@ namespace TwitterStreamWorker
                         _logger.LogInformation(">_ Waiting to publish new content...");
                         // Move value to appSettings
                         await Task.Delay(TimeSpan.FromMinutes(_options.ContentTimeSpan));
-                        await _appClient.Tweets.PublishTweetAsync(tweet);
+                        await _appClient.Tweets.PublishTweetAsync(tweet + " " + DateTime.Now);
                         _logger.LogInformation(">_ Publish content: " + tweet);
                     }
                     catch(TwitterException ex)
