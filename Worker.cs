@@ -134,19 +134,21 @@ namespace TwitterStreamWorker
                     await Task.CompletedTask.ConfigureAwait(true);
                 };
 
-                // Check if this is firing
+                // Stream started
                 stream.StreamStarted += async (sender, args) =>
                 {
                     _logger.LogWarning($">_ Stream started...");
                     await Task.CompletedTask.ConfigureAwait(true);
                 };
 
+                // Stream resumed
                 stream.StreamResumed += async (sender, args) =>
                 {
                     _logger.LogWarning($">_ Stream resumed...");
                     await Task.CompletedTask.ConfigureAwait(true);
                 };
 
+                // Stream stopped
                 stream.StreamStopped += async (sender, args) =>
                 {
                     var exceptionThatCausedTheStreamToStop = args.Exception;
@@ -158,24 +160,28 @@ namespace TwitterStreamWorker
                     await Task.Delay(1000, stoppingToken);
                 };
 
+                // Warning falling behind detected
                 stream.WarningFallingBehindDetected += async (sender, args) =>
                 {
                     _logger.LogWarning($">_ Warning falling behind...");
                     await Task.CompletedTask.ConfigureAwait(true);
                 };
-
+                
+                // Unmanaged Event Received
                 stream.UnmanagedEventReceived += async (sender, args) =>
                 {
                     _logger.LogWarning($">_ Unmanged Event...");
                     await Task.CompletedTask.ConfigureAwait(true);
                 };
 
+                // Limit Reached
                 stream.LimitReached += async (sender, args) =>
                 {
                     _logger.LogWarning($">_ Limit reached...");
                     await Task.CompletedTask.ConfigureAwait(true);
                 };
-
+                
+                // Disconnect Message Received
                 stream.DisconnectMessageReceived += async (sender, args) =>
                 {
                     _logger.LogWarning($">_ Stream disconnected...");
@@ -507,8 +513,6 @@ namespace TwitterStreamWorker
             // Flag for already posted today
 
             // Check for todays timestamp
-
-
 
             await Task.Delay(5);
 
