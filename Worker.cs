@@ -2,12 +2,14 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Tweetinvi;
 using Tweetinvi.Exceptions;
 using Tweetinvi.Streaming;
+using Tweetinvi.Streaming.Parameters;
 
 namespace TwitterStreamWorker
 {
@@ -16,6 +18,7 @@ namespace TwitterStreamWorker
         private readonly ILogger<Worker> _logger;
         private readonly WorkerOptions _options;
         private TwitterClient _appClient;
+        public IFilteredStream _stream { get; set; }
         public List<long> PublishTweets { get; set; } = new List<long>();
         public List<long> TweetUsers { get; set; } = new List<long>();
         public Worker(ILogger<Worker> logger, WorkerOptions options)
@@ -117,9 +120,9 @@ namespace TwitterStreamWorker
                 // For a client to be included in the application events you will need to subscribe to this client's events
                 TweetinviEvents.SubscribeToClientEvents(_appClient); // Check if working
 
-
                 // Create Stream
                 var stream = _appClient.Streams.CreateFilteredStream();
+                _stream = stream;
 
                 // This option allows the application to get notified 
                 // if the stream is about to be disconnected
@@ -131,55 +134,49 @@ namespace TwitterStreamWorker
                 stream.KeepAliveReceived += async (sender, args) =>
                 {
                     _logger.LogWarning(">_ Keep alive received...");
-                    await Task.CompletedTask.ConfigureAwait(true);
+                    await Task.Delay(1);
                 };
 
                 // Check if this is firing
                 stream.StreamStarted += async (sender, args) =>
                 {
                     _logger.LogWarning($">_ Stream started...");
-                    await Task.CompletedTask.ConfigureAwait(true);
+                    await Task.Delay(1);
                 };
 
                 stream.StreamResumed += async (sender, args) =>
                 {
                     _logger.LogWarning($">_ Stream resumed...");
-                    await Task.CompletedTask.ConfigureAwait(true);
+                    await Task.Delay(1);
                 };
 
                 stream.StreamStopped += async (sender, args) =>
                 {
-                    var exceptionThatCausedTheStreamToStop = args.Exception;
-                    var twitterDisconnectMessage = args.DisconnectMessage;
-
-                    _logger.LogWarning(">_ {0} Stream stopped... " + stream.StreamState);
-                    _logger.LogWarning(">_ {0} ", twitterDisconnectMessage);
-
-                    await Task.Delay(1000, stoppingToken);
+                    _logger.LogWarning("> Stream stopped... ");
                 };
 
                 stream.WarningFallingBehindDetected += async (sender, args) =>
                 {
                     _logger.LogWarning($">_ Warning falling behind...");
-                    await Task.CompletedTask.ConfigureAwait(true);
+                    await Task.Delay(1);
                 };
 
                 stream.UnmanagedEventReceived += async (sender, args) =>
                 {
                     _logger.LogWarning($">_ Unmanged Event...");
-                    await Task.CompletedTask.ConfigureAwait(true);
+                    await Task.Delay(1);
                 };
 
                 stream.LimitReached += async (sender, args) =>
                 {
                     _logger.LogWarning($">_ Limit reached...");
-                    await Task.CompletedTask.ConfigureAwait(true);
+                    await Task.Delay(1);
                 };
 
                 stream.DisconnectMessageReceived += async (sender, args) =>
                 {
                     _logger.LogWarning($">_ Stream disconnected...");
-                    await Task.CompletedTask.ConfigureAwait(true);
+                    await Task.Delay(1);
 
                 };
 
@@ -210,6 +207,9 @@ namespace TwitterStreamWorker
                 var badWords = _options.BadWords.ToList();
                 _logger.LogInformation($">_ Loading blocked users from appsettings...");
                 var blockedUsers = _options.BlockedUsers.ToList();
+
+                // Stopping stream - debug
+                //await StopStreamAndRestart();
 
                 // Hit when matching tweet is received
                 stream.MatchingTweetReceived += async (sender, args) =>
@@ -404,9 +404,19 @@ namespace TwitterStreamWorker
             catch (Exception ex)
             {
                 _logger.LogError($"Exception... " + ex.Message);
-
-                await Task.Delay(1000, stoppingToken);
+                // Stops and restarts stream
+                await StopStreamAndRestart();
             }
+        }
+
+        /// <summary>
+        /// Stops and restarts the stream
+        /// </summary>
+        public async Task StopStreamAndRestart()
+        {
+            _stream.Stop();
+            await Task.Delay(TimeSpan.FromMinutes(1));
+            await _stream.StartMatchingAllConditionsAsync();
         }
 
         /// <summary>
