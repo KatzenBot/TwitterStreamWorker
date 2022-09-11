@@ -15,16 +15,18 @@ namespace TwitterStreamWorker
 {
     public class Worker : BackgroundService
     {
+        private IHostApplicationLifetime _appLifetime;
         private readonly ILogger<Worker> _logger;
         private readonly WorkerOptions _options;
         private TwitterClient _appClient;
         public IFilteredStream _stream { get; set; }
         public List<long> PublishTweets { get; set; } = new List<long>();
         public List<long> TweetUsers { get; set; } = new List<long>();
-        public Worker(ILogger<Worker> logger, WorkerOptions options)
+        public Worker(ILogger<Worker> logger, WorkerOptions options, IHostApplicationLifetime appLifetime)
         {
             _logger = logger;
             _options = options;
+            _appLifetime = appLifetime;
         }
         /// <summary>
         /// Execute WorkerService as a background service
@@ -215,7 +217,9 @@ namespace TwitterStreamWorker
                 var blockedUsers = _options.BlockedUsers.ToList();
 
                 // Stopping stream - debug
-                //await StopStreamAndRestart();
+                // await StopStreamAndRestart();
+                // Shutting down application - debug
+                //_appLifetime.StopApplication();
 
                 // Hit when matching tweet is received
                 stream.MatchingTweetReceived += async (sender, args) =>
@@ -410,8 +414,10 @@ namespace TwitterStreamWorker
             catch (Exception ex)
             {
                 _logger.LogError($"Exception... " + ex.Message);
-                // Stops and restarts stream
-                await StopStreamAndRestart();
+                // Stops application - Service will be restarted by Server
+                _logger.LogCritical($"Stopping application... ");
+                await Task.Delay(TimeSpan.FromMinutes(2));
+                _appLifetime.StopApplication();
             }
         }
 
