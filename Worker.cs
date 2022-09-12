@@ -56,7 +56,22 @@ namespace TwitterStreamWorker
             public int RetweetTimeSpan { get;set;}
             public bool PublishMedia { get; set; }
             public bool PublishContent { get; set; }
+            public List<TimedEvent> TimedEvents {get; set;}
         }
+        
+        /// <summary>
+        /// # TimedEvent Model
+        /// - DateTime when triggerd
+        /// - EventMessage for the Tweet
+        /// - Was the event already triggered
+        /// </summary>
+        public class TimedEvent
+        {
+            public DateTime Date { get; set;} 
+            public string EventMessage { get; set;}
+            public bool AlreadyTriggered { get; set;}
+        }
+        
         /// <summary>
         /// Authenticate via Twitter API - tweetinvi https://github.com/linvi/tweetinvi
         /// Start twitter stream if successful
@@ -524,13 +539,22 @@ namespace TwitterStreamWorker
         public async Task TimedEvents()
         {
             // Import timed events from JSON
+            var timedEvents = _options.TimedEvents;
+            
+            
+            
             // If today in collection tweet it
+            
+            
+
 
             // Flag for already posted today
-
+            
+            
+            
+            
             // Check for todays timestamp
 
-            await Task.Delay(5);
 
         }
     }
